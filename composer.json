@@ -1,0 +1,14 @@
+{
+    "name": "rurak-ec/moodle-local_whatsappbutton",
+    "description": "A configurable floating WhatsApp button for Moodle",
+    "type": "moodle-local",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "moodle/moodle": ">=4.5 <5.3",
+        "moodle/composer-installer": "^1.2"
+    },
+    "support": {
+        "issues": "https://github.com/rurak-ec/moodle-local_whatsappbutton/issues",
+        "source": "https://github.com/rurak-ec/moodle-local_whatsappbutton"
+    }
+}

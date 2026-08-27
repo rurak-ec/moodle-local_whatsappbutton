@@ -1,0 +1,158 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle. If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_whatsappbutton/widget
+
+    Configurable floating WhatsApp chat widget.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * data-region="whatsapp-widget"
+    * data-region="whatsapp-chat"
+    * data-action="toggle-chat"
+    * data-action="close-chat"
+    * data-action="send-message"
+    * data-region="message-input"
+    * data-region="notification-dot"
+
+    Context variables required for this template:
+    * number Digits-only WhatsApp number.
+    * enablechat Whether the chat window is enabled.
+    * directmessageencoded URL-encoded optional message for direct mode.
+    * colormode Configured light or dark mode.
+    * businessname Header display name.
+    * greeting Welcome message.
+    * avatarurl Optional pluginfile URL for a custom avatar.
+    * placeholder Translated input placeholder.
+    * openlabel, closelabel, sendlabel, inputlabel Accessible labels.
+
+    Example context (json):
+    {
+        "number": "593991234567",
+        "enablechat": true,
+        "directmessageencoded": "",
+        "colormode": "light",
+        "businessname": "Rurak",
+        "greeting": "¡Hola! 👋\nCuéntanos qué proceso quieres automatizar.",
+        "avatarurl": "",
+        "placeholder": "Escribe tu mensaje...",
+        "openlabel": "Abrir soporte por WhatsApp",
+        "closelabel": "Cerrar chat de WhatsApp",
+        "sendlabel": "Enviar mensaje a WhatsApp",
+        "inputlabel": "Mensaje para WhatsApp"
+    }
+}}
+<div id="local-whatsappbutton"
+     class="local-whatsappbutton-widget"
+     data-region="whatsapp-widget"
+     data-phone="{{number}}"
+     data-chat-enabled="{{#enablechat}}1{{/enablechat}}{{^enablechat}}0{{/enablechat}}"
+     data-direct-message="{{directmessageencoded}}"
+     data-color-mode="{{colormode}}">
+    {{#enablechat}}
+    <section id="local-whatsappbutton-chat"
+             class="local-whatsappbutton-chat"
+             data-region="whatsapp-chat"
+             role="dialog"
+             aria-labelledby="local-whatsappbutton-title"
+             hidden
+             inert>
+        <header class="local-whatsappbutton-header">
+            <div class="local-whatsappbutton-header-info">
+                <span class="local-whatsappbutton-avatar" aria-hidden="true">
+                    {{#avatarurl}}
+                        <img src="{{avatarurl}}" alt="" width="40" height="40">
+                    {{/avatarurl}}
+                    {{^avatarurl}}
+                        <svg class="local-whatsappbutton-person-icon"
+                             viewBox="0 0 24 24"
+                             width="26"
+                             height="26"
+                             fill="currentColor"
+                             focusable="false"
+                             aria-hidden="true">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    {{/avatarurl}}
+                </span>
+                <span class="local-whatsappbutton-header-details">
+                    <strong id="local-whatsappbutton-title" class="local-whatsappbutton-title">{{businessname}}</strong>
+                </span>
+            </div>
+            <button class="local-whatsappbutton-close"
+                    data-action="close-chat"
+                    type="button"
+                    aria-label="{{closelabel}}">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" focusable="false" aria-hidden="true">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+            </button>
+        </header>
+
+        <div class="local-whatsappbutton-body">
+            <div class="local-whatsappbutton-message">
+                <span class="local-whatsappbutton-message-text">{{greeting}}</span>
+            </div>
+        </div>
+
+        <footer class="local-whatsappbutton-footer">
+            <div class="local-whatsappbutton-input-container">
+                <textarea class="local-whatsappbutton-input"
+                          data-region="message-input"
+                          placeholder="{{placeholder}}"
+                          rows="1"
+                          aria-label="{{inputlabel}}"></textarea>
+            </div>
+            <button class="local-whatsappbutton-send"
+                    data-action="send-message"
+                    type="button"
+                    aria-label="{{sendlabel}}">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"
+                     focusable="false" aria-hidden="true">
+                    <path d="m21.426 11.095-17-8A1 1 0 0 0 3.03 4.242l1.212 4.849L12 12l-7.758 2.909-1.212 4.849a.998.998 0 0 0 1.396 1.147l17-8a1 1 0 0 0 0-1.81z"/>
+                </svg>
+            </button>
+        </footer>
+    </section>
+    {{/enablechat}}
+
+    <button class="local-whatsappbutton-toggle"
+            data-action="toggle-chat"
+            type="button"
+            aria-label="{{openlabel}}"
+            {{#enablechat}}
+            aria-expanded="false"
+            aria-controls="local-whatsappbutton-chat"
+            {{/enablechat}}>
+        {{#enablechat}}
+        <span class="local-whatsappbutton-notification" data-region="notification-dot" aria-hidden="true"></span>
+        {{/enablechat}}
+        <svg class="local-whatsappbutton-logo"
+             viewBox="-0.5 -0.5 25 25"
+             width="32"
+             height="32"
+             fill="currentColor"
+             focusable="false"
+             aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+    </button>
+</div>
