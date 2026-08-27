@@ -1,6 +1,7 @@
+---
 name: Build release
 
-on:
+'on':
   push:
     tags:
       - 'v*'
@@ -16,7 +17,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build installable ZIP
-        run: git archive --format=zip --prefix=whatsappbutton/ --output=local_whatsappbutton.zip HEAD
+        run: >-
+          git archive --format=zip --prefix=whatsappbutton/
+          --output=local_whatsappbutton.zip HEAD
 
       - name: Publish GitHub release
         env:

@@ -1,5 +1,7 @@
+---
 name: Bug report
-description: Report reproducible incorrect behaviour in the WhatsApp button plugin.
+description: >-
+  Report reproducible incorrect behaviour in the WhatsApp button plugin.
 title: "[Bug]: "
 labels:
   - bug

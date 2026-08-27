@@ -39,8 +39,10 @@ class whatsapp_number extends \admin_setting_configtext {
     public function write_setting($data) {
         $number = phone::normalise((string)$data);
 
+        // An empty value is valid during a fresh installation. The renderer keeps
+        // the widget hidden until an administrator configures a valid number.
         if ($number === '') {
-            return get_string('numberrequired', 'local_whatsappbutton');
+            return parent::write_setting('');
         }
 
         if (!phone::is_valid($number)) {
