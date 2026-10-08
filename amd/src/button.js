@@ -127,25 +127,11 @@ export const init = () => {
     widget.dataset.initialised = 'true';
     let isOpen = false;
     let closeTimer = null;
-    let notifTimer = null;
 
     const hideChat = () => {
         if (!isOpen) {
             chat.hidden = true;
             chat.setAttribute('inert', '');
-        }
-    };
-
-    const handleDocumentClick = (event) => {
-        if (isOpen && !widget.contains(event.target)) {
-            closeChat();
-        }
-    };
-
-    const handleDocumentKeydown = (event) => {
-        if (event.key === 'Escape' && isOpen) {
-            event.preventDefault();
-            closeChat();
         }
     };
 
@@ -159,11 +145,6 @@ export const init = () => {
             window.clearTimeout(closeTimer);
             closeTimer = null;
         }
-        if (notifTimer !== null) {
-            window.clearTimeout(notifTimer);
-            notifTimer = null;
-        }
-
         chat.hidden = false;
         chat.removeAttribute('inert');
 
@@ -172,10 +153,6 @@ export const init = () => {
             toggle.setAttribute('aria-expanded', 'true');
             window.requestAnimationFrame(() => input.focus());
         });
-
-        // Add document listeners only while dialog is active to prevent any background overhead.
-        document.addEventListener('click', handleDocumentClick);
-        document.addEventListener('keydown', handleDocumentKeydown);
 
         notification?.classList.remove('is-visible');
         rememberOpened();
@@ -187,10 +164,6 @@ export const init = () => {
         }
 
         isOpen = false;
-        // Clean up global document listeners immediately when dialog is closed.
-        document.removeEventListener('click', handleDocumentClick);
-        document.removeEventListener('keydown', handleDocumentKeydown);
-
         chat.classList.remove('is-visible');
         toggle.setAttribute('aria-expanded', 'false');
         closeTimer = window.setTimeout(hideChat, CLOSE_TRANSITION_MS);
@@ -241,8 +214,21 @@ export const init = () => {
         }
     });
 
+    document.addEventListener('click', (event) => {
+        if (isOpen && !widget.contains(event.target)) {
+            closeChat();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && isOpen) {
+            event.preventDefault();
+            closeChat();
+        }
+    });
+
     if (!hasOpenedThisSession() && notification) {
-        notifTimer = window.setTimeout(() => {
+        window.setTimeout(() => {
             if (!hasOpenedThisSession() && notification.isConnected) {
                 notification.classList.add('is-visible');
             }

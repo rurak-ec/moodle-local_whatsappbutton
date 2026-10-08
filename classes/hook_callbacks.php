@@ -203,11 +203,11 @@ class hook_callbacks {
         }
 
         $pagetype = (string)$page->pagetype;
-        if (str_starts_with($pagetype, 'admin-') ||
-            str_starts_with($pagetype, 'login-') ||
-            str_starts_with($pagetype, 'webservice-') ||
-            str_starts_with($pagetype, 'ajax-')) {
-            return true;
+        $excludedprefixes = ['admin-', 'login-', 'webservice-', 'ajax-'];
+        foreach ($excludedprefixes as $prefix) {
+            if (str_starts_with($pagetype, $prefix)) {
+                return true;
+            }
         }
 
         return false;
