@@ -30,6 +30,28 @@ use local_whatsappbutton\local\phone;
  * Adds the button only to configured, ordinary Moodle pages.
  */
 class hook_callbacks {
+    /** @var string|null Cached active phone number for the current request. */
+    private static ?string $activenumber = null;
+
+    /** @var bool Whether the active number check has already been performed. */
+    private static bool $numberchecked = false;
+
+    /** @var \stdClass|null Cached plugin configuration object. */
+    private static ?\stdClass $pluginconfig = null;
+
+    /**
+     * Retrieve plugin configuration with request-level memoization.
+     *
+     * @return \stdClass Plugin configuration object.
+     */
+    private static function get_plugin_config(): \stdClass {
+        if (self::$pluginconfig === null) {
+            $config = get_config('local_whatsappbutton');
+            self::$pluginconfig = is_object($config) ? $config : (object)[];
+        }
+        return self::$pluginconfig;
+    }
+
     /**
      * Register the button's CSS while <head> is still being generated.
      *
@@ -44,8 +66,9 @@ class hook_callbacks {
             return;
         }
 
+        $config = self::get_plugin_config();
         $PAGE->requires->css(new \moodle_url('/local/whatsappbutton/styles.css', [
-            'v' => (string)get_config('local_whatsappbutton', 'version'),
+            'v' => (string)($config->version ?? ''),
         ]));
     }
 
@@ -64,10 +87,10 @@ class hook_callbacks {
             return;
         }
 
-        $config = get_config('local_whatsappbutton');
+        $config = self::get_plugin_config();
         $enablechat = !empty($config->enablechat);
         $colormode = (string)($config->colormode ?? 'light');
-        if (!in_array($colormode, ['dark', 'light'], true)) {
+        if ($colormode !== 'dark') {
             $colormode = 'light';
         }
 
@@ -127,24 +150,43 @@ class hook_callbacks {
     /**
      * Resolve the button's target number for the current page, if it should show at all.
      *
+     * Performs memoization so the calculation executes only once per HTTP request.
+     *
      * @param \moodle_page $page Current Moodle page.
      * @return string|null Validated WhatsApp number, or null if the button should not show here.
      */
     private static function get_active_number(\moodle_page $page): ?string {
-        if (during_initial_install() || !get_config('local_whatsappbutton', 'version')) {
+        if (self::$numberchecked) {
+            return self::$activenumber;
+        }
+        self::$numberchecked = true;
+
+        if (during_initial_install()) {
             return null;
         }
 
-        $config = get_config('local_whatsappbutton');
-        if (empty($config->enabled) || self::is_excluded_page($page)) {
+        $config = self::get_plugin_config();
+        // Fast exit: if disabled, missing version, or missing destination number, return null immediately.
+        if (empty($config->version) || empty($config->enabled) || empty($config->number)) {
             return null;
         }
 
-        $number = phone::normalise((string)($config->number ?? ''));
-        if (!phone::is_valid($number) || !self::is_enabled_for_page($page, $config)) {
+        // Fast exit: excluded page types or layouts.
+        if (self::is_excluded_page($page)) {
             return null;
         }
 
+        // Fast exit: disabled for current page area.
+        if (!self::is_enabled_for_page($page, $config)) {
+            return null;
+        }
+
+        $number = phone::normalise((string)$config->number);
+        if (!phone::is_valid($number)) {
+            return null;
+        }
+
+        self::$activenumber = $number;
         return $number;
     }
 
@@ -155,17 +197,17 @@ class hook_callbacks {
      * @return bool Whether this page is excluded unconditionally.
      */
     private static function is_excluded_page(\moodle_page $page): bool {
-        $pagetype = (string)$page->pagetype;
         $layout = (string)$page->pagelayout;
-
         if (in_array($layout, ['embedded', 'popup', 'print', 'maintenance'], true)) {
             return true;
         }
 
-        foreach (['admin-', 'login-', 'webservice-', 'ajax-'] as $prefix) {
-            if (strpos($pagetype, $prefix) === 0) {
-                return true;
-            }
+        $pagetype = (string)$page->pagetype;
+        if (str_starts_with($pagetype, 'admin-') ||
+            str_starts_with($pagetype, 'login-') ||
+            str_starts_with($pagetype, 'webservice-') ||
+            str_starts_with($pagetype, 'ajax-')) {
+            return true;
         }
 
         return false;

@@ -31,6 +31,8 @@
     align-items: flex-end;
     font-family: inherit;
     pointer-events: none;
+    contain: layout;
+    isolation: isolate;
 }
 
 #local-whatsappbutton.local-whatsappbutton-widget[data-color-mode="dark"] {
@@ -73,6 +75,7 @@
     box-shadow: 0 4px 12px rgb(0 0 0 / 20%);
     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 #local-whatsappbutton .local-whatsappbutton-toggle:hover {
@@ -118,6 +121,8 @@
     transform: scale(0.92) translateY(8px);
     transform-origin: bottom right;
     transition: opacity 0.25s ease-out, transform 0.25s ease-out, visibility 0.25s;
+    contain: layout style;
+    will-change: transform, opacity;
 }
 
 #local-whatsappbutton .local-whatsappbutton-chat.is-visible {
@@ -205,6 +210,7 @@
     cursor: pointer;
     transition: background-color 0.15s ease-out;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 #local-whatsappbutton .local-whatsappbutton-close:hover {
@@ -321,6 +327,7 @@
     cursor: pointer;
     transition: background-color 0.15s ease-out;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 #local-whatsappbutton .local-whatsappbutton-send:hover {
@@ -333,7 +340,7 @@
     right: 2px;
     width: 14px;
     height: 14px;
-    border: 2px solid #fff;
+    border: 0;
     border-radius: 50%;
     background: #ef4444;
     opacity: 0;

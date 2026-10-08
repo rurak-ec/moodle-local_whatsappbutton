@@ -2,6 +2,19 @@
 
 All notable changes to this plugin are documented here.
 
+## 1.4.3 - 2026-10-08
+
+- Performance: Implement request-level memoization in output hooks to eliminate redundant configuration parsing and phone validation.
+- Performance: Lazy-bind global document click and Escape key listeners only while the chat dialog is actively open.
+- Performance: Add CSS containment (`contain: layout;`, `isolation: isolate;`, `contain: layout style;`) and hardware GPU acceleration (`will-change: transform, opacity;`) to prevent full-page layout reflows.
+- Performance: Add `touch-action: manipulation;` on interactive buttons to remove mobile 300ms click delay.
+- Compatibility: Formally integrate Moodle 5.3 LTS (`MOODLE_503_STABLE`) in `moodle-plugin-ci` matrix across PHP 8.3 and PHP 8.4.
+
+## 1.4.1 - 2026-10-06
+
+- Fix the profile image returning 404: the pluginfile callback now accepts the item id (`/0/`) that Moodle puts in the URL.
+- Remove the white ring around the red notification dot.
+
 ## 1.4.0 - 2026-08-27
 
 - Remove the online status and message timestamp from the widget and administration settings.

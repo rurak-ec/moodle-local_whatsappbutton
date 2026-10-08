@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_whatsappbutton';
-$plugin->version   = 2026082709;
+$plugin->version   = 2026100801;
 $plugin->requires  = 2024100700;
-$plugin->supported = [405, 502];
+$plugin->supported = [405, 503];
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = 'v1.4.0';
+$plugin->release   = 'v1.4.3';

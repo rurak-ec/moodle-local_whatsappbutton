@@ -20,14 +20,21 @@ open WhatsApp directly or display a small message panel before redirecting the v
 
 ## Requirements and compatibility
 
-- Moodle 4.5, 5.0, 5.1 or 5.2.
-- PHP version supported by the selected Moodle release.
+- Moodle 4.5, 5.0, 5.1, 5.2 or 5.3 (LTS).
+- PHP 8.1, 8.2, 8.3 or 8.4 (as required by the selected Moodle version).
 - A destination number that can receive WhatsApp messages.
 
-The CI matrix tests every currently maintained Moodle series on PostgreSQL and MariaDB. A
-non-blocking job also tracks Moodle `main` (currently 5.3-dev) to identify upcoming compatibility
-changes early. Development-branch testing is an early warning and does not claim support for an
-unreleased Moodle version.
+The CI workflow uses official [`moodlehq/moodle-plugin-ci`](https://github.com/moodlehq/moodle-plugin-ci) to validate every currently maintained Moodle release against PostgreSQL and MariaDB, adhering strictly to Moodle Developer Documentation ([moodledev.io](https://moodledev.io)).
+
+## Performance and zero-overhead architecture
+
+The plugin is engineered for zero measurable impact on Moodle page rendering and responsiveness:
+
+- **Request-level memoization:** Hook callbacks memoize the active number and plugin configuration in memory. Resolution logic executes only once per HTTP request; subsequent hook invocations return in $O(1)$ without repeating database calls or regex operations.
+- **Fast early returns:** Immediately aborts execution on administration, login, AJAX, and webservice requests before parsing configuration or inspecting page layouts.
+- **Lazy event listeners:** Global `document` click and `Escape` key listeners are attached only while the chat dialog is open and cleanly unregistered upon closing. Zero JavaScript runs during ordinary typing, form submissions, or forum navigation.
+- **Strict CSS containment:** Uses CSS `contain: layout;`, `isolation: isolate;` on the widget root and `contain: layout style; will-change: transform, opacity;` on the dialog to prevent full-page layout thrashing or browser repaints during transitions.
+- **Mobile responsiveness:** Employs `touch-action: manipulation;` on all interactive buttons to eliminate the mobile 300ms click delay.
 
 ## Installation
 

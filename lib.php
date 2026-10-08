@@ -50,6 +50,13 @@ function local_whatsappbutton_pluginfile(
         return false;
     }
 
+    // Moodle passes the item id as the first path component (make_pluginfile_url adds "/0/"); the avatar always uses 0.
+    if (count($args) > 1 && ctype_digit((string)$args[0])) {
+        if ((int)array_shift($args) !== 0) {
+            return false;
+        }
+    }
+
     $filename = array_pop($args);
     $filepath = '/' . ($args ? implode('/', $args) . '/' : '');
     $file = get_file_storage()->get_file(
