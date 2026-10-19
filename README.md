@@ -13,7 +13,10 @@ open WhatsApp directly or display a small message panel before redirecting the v
 - Always excludes administration, login, embedded, popup, print, maintenance and technical pages.
 - Direct mode opens WhatsApp with an optional administrator-defined message.
 - Optional chat mode provides a welcome message, fixed-height input, keyboard controls and an
-  accessible dialog.
+  accessible dialog. The welcome message arrives with a WhatsApp-style typing bubble (1 second) and
+  pop-in animation the first time the panel opens in a browser tab (reloading or closing the tab starts a
+  new conversation); later openings show it at once. The animation is skipped when the visitor
+  prefers reduced motion.
 - Configurable display name, profile image and manual light or dark colour scheme.
 - Uses Moodle's File API, output hooks, Mustache templates, AMD modules and Privacy API.
 - Stores no visitor messages and requires no WhatsApp Business API credentials or paid subscription.

@@ -2,6 +2,21 @@
 
 All notable changes to this plugin are documented here.
 
+## 1.4.5 - 2026-10-19
+
+- The typing bubble now plays only the first time the panel opens in a conversation. Opening it again shows the welcome message at once.
+- The typing bubble shows for 1 second instead of about 1.5 seconds.
+- A conversation belongs to a browser tab: it continues while the visitor moves between Moodle pages, and starts again when the tab is reloaded or closed and reopened.
+- Closing the panel while the bubble is still typing counts as having received the message, so reopening shows it straight away.
+- The conversation state is kept in `sessionStorage` (separate from the notification dot) and falls back to once per page load when storage is unavailable.
+
+## 1.4.4 - 2026-10-19
+
+- The welcome message now arrives like an incoming WhatsApp message: when the panel opens, a bubble with three bouncing dots shows for about 1.5 seconds and the message then pops in. It is skipped when the visitor prefers reduced motion. (It played on every opening in this release; 1.4.5 limits it to the first.)
+- The message area is a polite live region, so screen readers announce the greeting when it arrives. The typing bubble is hidden from assistive technology.
+- The online status and message timestamp stay removed (see 1.4.0).
+- Restore the lazy document click and Escape listeners and the notification timer in the AMD source, which the 1.4.3 build already shipped but the source had lost.
+
 ## 1.4.3 - 2026-10-08
 
 - Performance: Implement request-level memoization in output hooks to eliminate redundant configuration parsing and phone validation.

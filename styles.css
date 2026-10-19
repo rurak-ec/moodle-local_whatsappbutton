@@ -258,6 +258,67 @@
     white-space: pre-line;
 }
 
+/* The greeting arrives like an incoming WhatsApp message: typing bubble first, then the message pops in. */
+#local-whatsappbutton .local-whatsappbutton-typing {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.8rem 0.9rem;
+    animation: local-whatsappbutton-arrive 0.2s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+    transform-origin: 0 0;
+}
+
+#local-whatsappbutton .local-whatsappbutton-typing[hidden] {
+    display: none;
+}
+
+#local-whatsappbutton .local-whatsappbutton-typing-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--local-wa-muted);
+    animation: local-whatsappbutton-typing-dot 1.2s ease-in-out infinite;
+}
+
+#local-whatsappbutton .local-whatsappbutton-typing-dot:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+#local-whatsappbutton .local-whatsappbutton-typing-dot:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+#local-whatsappbutton .local-whatsappbutton-message.is-arriving {
+    animation: local-whatsappbutton-arrive 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: 0 0;
+}
+
+@keyframes local-whatsappbutton-arrive {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes local-whatsappbutton-typing-dot {
+    0%,
+    60%,
+    100% {
+        opacity: 0.4;
+        transform: translateY(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translateY(-4px);
+    }
+}
+
 #local-whatsappbutton .local-whatsappbutton-footer {
     display: flex;
     flex-shrink: 0;
@@ -394,7 +455,10 @@
         transition: none;
     }
 
-    #local-whatsappbutton .local-whatsappbutton-notification.is-visible {
+    #local-whatsappbutton .local-whatsappbutton-notification.is-visible,
+    #local-whatsappbutton .local-whatsappbutton-typing,
+    #local-whatsappbutton .local-whatsappbutton-typing-dot,
+    #local-whatsappbutton .local-whatsappbutton-message.is-arriving {
         animation: none;
     }
 }

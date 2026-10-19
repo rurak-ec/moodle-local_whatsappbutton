@@ -30,6 +30,8 @@
     * data-action="send-message"
     * data-region="message-input"
     * data-region="notification-dot"
+    * data-region="chat-message"
+    * data-region="chat-typing"
 
     Context variables required for this template:
     * number Digits-only WhatsApp number.
@@ -107,8 +109,16 @@
             </button>
         </header>
 
-        <div class="local-whatsappbutton-body">
-            <div class="local-whatsappbutton-message">
+        <div class="local-whatsappbutton-body" role="log" aria-live="polite">
+            <div class="local-whatsappbutton-message local-whatsappbutton-typing"
+                 data-region="chat-typing"
+                 aria-hidden="true"
+                 hidden>
+                <span class="local-whatsappbutton-typing-dot"></span>
+                <span class="local-whatsappbutton-typing-dot"></span>
+                <span class="local-whatsappbutton-typing-dot"></span>
+            </div>
+            <div class="local-whatsappbutton-message" data-region="chat-message">
                 <span class="local-whatsappbutton-message-text">{{greeting}}</span>
             </div>
         </div>

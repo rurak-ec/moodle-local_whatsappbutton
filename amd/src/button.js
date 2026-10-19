@@ -26,13 +26,19 @@ const SELECTORS = {
     CHAT: '[data-region="whatsapp-chat"]',
     INPUT: '[data-region="message-input"]',
     NOTIFICATION: '[data-region="notification-dot"]',
+    MESSAGE: '[data-region="chat-message"]',
+    TYPING: '[data-region="chat-typing"]',
     TOGGLE: '[data-action="toggle-chat"]',
     CLOSE: '[data-action="close-chat"]',
     SEND: '[data-action="send-message"]',
 };
 
 const STORAGE_KEY = 'local_whatsappbutton_opened';
+const GREETED_KEY = 'local_whatsappbutton_greeted';
 const CLOSE_TRANSITION_MS = 300;
+// How long the typing bubble shows before the greeting arrives, like a reply that takes a moment to write.
+const TYPING_DURATION_MS = 1000;
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
  * Read sessionStorage without breaking the widget in restricted browsers.
@@ -57,6 +63,66 @@ const rememberOpened = () => {
         // Storage can be unavailable in privacy modes. The chat still works.
     }
 };
+
+/**
+ * Whether the greeting already arrived in this tab's conversation.
+ *
+ * The conversation lives in sessionStorage, so it survives moving between Moodle pages and ends
+ * when the tab is closed.
+ *
+ * @return {boolean} True when the greeting should show at once instead of arriving again.
+ */
+const hasBeenGreeted = () => {
+    try {
+        return window.sessionStorage.getItem(GREETED_KEY) === 'true';
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Remember that the greeting arrived, when sessionStorage is available.
+ */
+const rememberGreeted = () => {
+    try {
+        window.sessionStorage.setItem(GREETED_KEY, 'true');
+    } catch {
+        // Storage can be unavailable in privacy modes. The greeting still plays once per page load.
+    }
+};
+
+/**
+ * Start a brand new conversation, as if the tab had just been opened.
+ */
+const forgetGreeted = () => {
+    try {
+        window.sessionStorage.removeItem(GREETED_KEY);
+    } catch {
+        // Nothing to forget when storage is unavailable.
+    }
+};
+
+/**
+ * Whether this page load is a browser reload (as opposed to following a link or opening a tab).
+ *
+ * @return {boolean} True for a reload.
+ */
+const isPageReload = () => {
+    try {
+        const entry = window.performance.getEntriesByType('navigation')[0];
+        return Boolean(entry) && entry.type === 'reload';
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * Whether the visitor asked the system to minimise animation.
+ *
+ * @return {boolean} True when motion should be skipped.
+ */
+const prefersReducedMotion = () => typeof window.matchMedia === 'function' &&
+    window.matchMedia(REDUCED_MOTION_QUERY).matches;
 
 /**
  * Open a protected wa.me link, optionally including a message.
@@ -120,6 +186,8 @@ export const init = () => {
     const close = widget.querySelector(SELECTORS.CLOSE);
     const send = widget.querySelector(SELECTORS.SEND);
     const notification = widget.querySelector(SELECTORS.NOTIFICATION);
+    const message = widget.querySelector(SELECTORS.MESSAGE);
+    const typing = widget.querySelector(SELECTORS.TYPING);
     if (!chat || !input || !close || !send) {
         return;
     }
@@ -127,11 +195,72 @@ export const init = () => {
     widget.dataset.initialised = 'true';
     let isOpen = false;
     let closeTimer = null;
+    let notifTimer = null;
+    let typingTimer = null;
+
+    // A reload starts a new conversation; moving to another page of the same tab keeps the old one.
+    if (isPageReload()) {
+        forgetGreeted();
+    }
+    let greeted = hasBeenGreeted();
+
+    const stopTyping = () => {
+        if (typingTimer !== null) {
+            window.clearTimeout(typingTimer);
+            typingTimer = null;
+        }
+    };
+
+    const showGreeting = () => {
+        typing.hidden = true;
+        message.hidden = false;
+    };
+
+    const revealMessage = () => {
+        typingTimer = null;
+        showGreeting();
+        message.classList.add('is-arriving');
+    };
+
+    // The greeting arrives like an incoming WhatsApp message (a typing bubble first, then the message pops in),
+    // but only the first time the chat opens in this conversation. Afterwards it is simply there.
+    const playArrival = () => {
+        if (!message || !typing) {
+            return;
+        }
+
+        stopTyping();
+        message.classList.remove('is-arriving');
+        const animate = !greeted && !prefersReducedMotion();
+        greeted = true;
+        rememberGreeted();
+        if (!animate) {
+            showGreeting();
+            return;
+        }
+
+        message.hidden = true;
+        typing.hidden = false;
+        typingTimer = window.setTimeout(revealMessage, TYPING_DURATION_MS);
+    };
 
     const hideChat = () => {
         if (!isOpen) {
             chat.hidden = true;
             chat.setAttribute('inert', '');
+        }
+    };
+
+    const handleDocumentClick = (event) => {
+        if (isOpen && !widget.contains(event.target)) {
+            closeChat();
+        }
+    };
+
+    const handleDocumentKeydown = (event) => {
+        if (event.key === 'Escape' && isOpen) {
+            event.preventDefault();
+            closeChat();
         }
     };
 
@@ -145,6 +274,12 @@ export const init = () => {
             window.clearTimeout(closeTimer);
             closeTimer = null;
         }
+        if (notifTimer !== null) {
+            window.clearTimeout(notifTimer);
+            notifTimer = null;
+        }
+
+        playArrival();
         chat.hidden = false;
         chat.removeAttribute('inert');
 
@@ -153,6 +288,10 @@ export const init = () => {
             toggle.setAttribute('aria-expanded', 'true');
             window.requestAnimationFrame(() => input.focus());
         });
+
+        // Add document listeners only while dialog is active to prevent any background overhead.
+        document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('keydown', handleDocumentKeydown);
 
         notification?.classList.remove('is-visible');
         rememberOpened();
@@ -164,6 +303,11 @@ export const init = () => {
         }
 
         isOpen = false;
+        stopTyping();
+        // Clean up global document listeners immediately when dialog is closed.
+        document.removeEventListener('click', handleDocumentClick);
+        document.removeEventListener('keydown', handleDocumentKeydown);
+
         chat.classList.remove('is-visible');
         toggle.setAttribute('aria-expanded', 'false');
         closeTimer = window.setTimeout(hideChat, CLOSE_TRANSITION_MS);
@@ -214,21 +358,8 @@ export const init = () => {
         }
     });
 
-    document.addEventListener('click', (event) => {
-        if (isOpen && !widget.contains(event.target)) {
-            closeChat();
-        }
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && isOpen) {
-            event.preventDefault();
-            closeChat();
-        }
-    });
-
     if (!hasOpenedThisSession() && notification) {
-        window.setTimeout(() => {
+        notifTimer = window.setTimeout(() => {
             if (!hasOpenedThisSession() && notification.isConnected) {
                 notification.classList.add('is-visible');
             }
